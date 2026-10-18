@@ -66,6 +66,65 @@
 .ppin:focus-visible{outline:none}.ppin:focus-visible .pin{outline:2px solid #FBF6EC;outline-offset:4px}
 .slide.parcel.on .ppin .pin::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px solid #FBF6EC;animation:ping 2.6s ease-out infinite}
 .ppin .pin{position:relative}
+/* ---- trust machine: the pipeline as a pull-apart stack ---- */
+.mach{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:center;margin-top:clamp(28px,4vw,48px)}
+.mach-stage{position:relative;height:clamp(420px,46vw,540px);perspective:1500px;perspective-origin:50% 30%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;
+  border-radius:28px;background:radial-gradient(ellipse at 50% 70%,rgba(149,78,42,.10),transparent 62%),var(--card);border:1px solid var(--line);box-shadow:0 30px 70px rgba(42,34,28,.10);overflow:hidden}
+.mach-stage::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(42,34,28,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(42,34,28,.05) 1px,transparent 1px);background-size:32px 32px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 55%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 55%,#000 20%,transparent 75%);pointer-events:none}
+.mach-stage.drag{cursor:grabbing}
+.mach-stage .hint{position:absolute;left:16px;bottom:14px;z-index:2;font:500 .68rem/1 var(--f-mono);letter-spacing:.06em;color:var(--ink-2)}
+.rig{--s:150px;--t:14px;position:absolute;left:calc(50% + var(--shx,0px));top:calc(50% + var(--lift,0px));width:0;height:0;transform-style:preserve-3d;
+  transform:rotateX(60deg) rotateZ(var(--rz,-38deg));transition:transform .5s var(--ease),left .5s var(--ease),top .5s var(--ease)}
+.mach-stage.drag .rig{transition:none}
+.slab{position:absolute;left:calc(var(--s) / -2);top:calc(var(--s) / -2);width:var(--s);height:var(--s);transform-style:preserve-3d;
+  transform:translate3d(var(--x,0px),var(--y,0px),var(--z,0px));transition:transform .7s var(--settle,var(--ease));cursor:pointer}
+.slab > i{position:absolute;display:block;backface-visibility:visible}
+.slab .tp{inset:0;transform:translateZ(var(--t));border-radius:6px;background:var(--face,#F7F1E6);border:1px solid rgba(42,34,28,.16);
+  box-shadow:inset 0 0 0 6px rgba(255,255,255,.35);display:flex;align-items:flex-end;justify-content:flex-end;flex-direction:column;gap:5px;padding:0 12px 12px;transition:background .35s,box-shadow .35s}
+.slab .tp b{font:500 .98rem/1.05 var(--f-display);color:var(--ink);text-align:right;transition:opacity .3s}
+.slab .tp em{font:600 .58rem/1 var(--f-mono);letter-spacing:.1em;color:var(--clay);font-style:normal;transition:opacity .3s}
+.slab .tp s{position:absolute;left:12px;top:12px;width:22px;height:22px;border-radius:50%;background:var(--clay);color:#FBF6EC;font:600 .66rem/22px var(--f-mono);text-align:center;text-decoration:none}
+.mach.nolabels .slab .tp b,.mach.nolabels .slab .tp em{opacity:0}
+.slab .sd{background:var(--side,#D9CBB5)}
+.slab .sn{left:0;top:0;width:100%;height:var(--t);transform-origin:top;transform:rotateX(90deg);filter:brightness(.92)}
+.slab .ss{left:0;bottom:0;width:100%;height:var(--t);transform-origin:bottom;transform:rotateX(-90deg);filter:brightness(.82)}
+.slab .se{right:0;top:0;width:var(--t);height:100%;transform-origin:right;transform:rotateY(90deg);filter:brightness(.72)}
+.slab .sw{left:0;top:0;width:var(--t);height:100%;transform-origin:left;transform:rotateY(-90deg);filter:brightness(.88)}
+.slab.on .tp{--face:#FFFCF6;box-shadow:inset 0 0 0 2px var(--clay),0 0 0 4px rgba(149,78,42,.18)}
+.slab.on{--side:#B9784F}
+.slab:hover .tp{--face:#FFFCF6}
+.slab.hit .tp{animation:slabhit .6s var(--ease)}
+@keyframes slabhit{40%{--face:#F2D9C6;background:#F2D9C6}}
+.pkt{position:absolute;left:-34px;top:-44px;width:68px;height:88px;transform-style:preserve-3d;transform:translate3d(var(--px,0px),var(--py,0px),var(--pz,0px));opacity:0;pointer-events:none;transition:opacity .3s}
+.pkt i{position:absolute;inset:0;border-radius:4px;background:#fff;border:1px solid rgba(42,34,28,.25);box-shadow:0 0 0 3px rgba(149,78,42,.25);
+  display:flex;align-items:flex-start;justify-content:flex-start;padding:6px;font:700 .6rem/1 var(--f-mono);color:var(--clay)}
+.pkt i::after{content:"";position:absolute;left:8px;right:8px;top:22px;height:44px;background:repeating-linear-gradient(transparent 0 6px,rgba(42,34,28,.22) 6px 8px)}
+.pkt.go{opacity:1}
+.mach-side{min-width:0}
+.mach-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.mach-ctl label{display:flex;align-items:center;gap:10px;font:600 .7rem/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.mach-ctl input[type=range]{width:120px;accent-color:var(--clay)}
+.mach-ctl .sw{position:relative;width:38px;height:22px;border-radius:99px;background:var(--line);border:0;padding:0;cursor:pointer;transition:background .25s}
+.mach-ctl .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .25s var(--ease)}
+.mach-ctl .sw[aria-pressed=true]{background:var(--clay)}
+.mach-ctl .sw[aria-pressed=true]::after{transform:translateX(16px)}
+.mach-ctl .run{margin-left:auto}
+.mach-card{margin-top:14px;padding:clamp(18px,2.4vw,26px);border-radius:20px;background:var(--card);border:1px solid var(--line);box-shadow:0 14px 34px rgba(42,34,28,.08);min-height:250px}
+.mach-card .k{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mach-card h3{margin:10px 0 0;font:400 clamp(1.4rem,2.4vw,1.8rem)/1.1 var(--f-display)}
+.mach-card .does{margin:10px 0 0;color:var(--ink-2);font-size:.95rem;line-height:1.5}
+.mach-card .trust{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:var(--sand);font-size:.9rem;line-height:1.45}
+.mach-card .trust b{display:block;font:600 .64rem/1.2 var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--clay);margin-bottom:4px}
+.mach-card .nav{display:flex;gap:8px;margin-top:16px}
+.mach-card .nav button{flex:1;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;font:600 .8rem/1 var(--f-body);color:var(--ink);cursor:pointer}
+.mach-card .nav button:hover{border-color:var(--clay);color:var(--clay)}
+.mach-card .in{transition:opacity .25s var(--ease),transform .25s var(--ease)}
+.mach-card .in.swap{opacity:0;transform:translateY(6px)}
+.mach-note{margin:12px 2px 0;font-size:.78rem;color:var(--ink-2)}
+@media (max-width:860px){.mach{grid-template-columns:1fr}.rig{--s:130px;--t:12px}.mach-stage{height:520px}}
+@media (max-width:420px){.rig{--s:112px}.mach-stage{height:480px}.mach-ctl input[type=range]{width:96px}}
+@media (prefers-reduced-motion:reduce){.slab,.rig{transition:none}.slab.hit .tp{animation:none}}
 </style></head><body>
 <title>The Agentis Brief · Parsed Agendas</title>
 <meta name="description" content="Greenville County rezonings, plats and variances, the week they hit the agenda. Founding list for The Agentis Brief.">
@@ -657,7 +716,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
 
   <section class="wrap sec" aria-labelledby="h-who">
     <div class="head reveal">
-      <div><p class="kicker label" data-n="01 / 05">Who reads it</p><h2 id="h-who">Built for the people <em>who work the deal.</em></h2></div>
+      <div><p class="kicker label" data-n="01 / 06">Who reads it</p><h2 id="h-who">Built for the people <em>who work the deal.</em></h2></div>
       <p>If a rezoning next door changes your listing, your lot pipeline, your case or your collateral, you want it the week it's filed. Not when the sign goes up.</p>
     </div>
     <ul class="roles">
@@ -670,7 +729,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
 
   <section class="wrap sec" aria-labelledby="h-seq" id="seq">
     <div class="head reveal">
-      <div><p class="kicker label" data-n="02 / 05">Why it matters</p><h2 id="h-seq">Before it's built, <em>it's filed.</em></h2></div>
+      <div><p class="kicker label" data-n="02 / 06">Why it matters</p><h2 id="h-seq">Before it's built, <em>it's filed.</em></h2></div>
       <p>Most projects in the county go through a public hearing long before anyone breaks ground. The filing is public record. It's also buried in a meeting PDF most people never open.</p>
     </div>
     <ol class="frames">
@@ -683,9 +742,38 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
     <p class="credit">Photos for illustration. The aerials are Greenville County (USDA); the field and road photos are stock, not Greenville. None are tied to the filings on this page.</p>
   </section>
 
+  <section class="wrap sec" aria-labelledby="h-machine" id="machine">
+    <div class="head reveal">
+      <div><p class="kicker label" data-n="03 / 06">How it works</p><h2 id="h-machine">Every line is checked <em>on the way through.</em></h2></div>
+      <p>This is the machine behind the Brief. Scroll down and it opens up and runs an agenda through on its own. Drag to turn it, and tap any layer to see what it does and why you can trust what comes out the bottom.</p>
+    </div>
+    <div class="mach reveal" id="mach">
+      <div class="mach-stage" id="mach-stage" aria-label="Diagram of the pipeline, seven layers from the county PDF at the top to the Brief at the bottom">
+        <div class="rig" id="rig"></div>
+        <span class="hint" aria-hidden="true">DRAG TO TURN</span>
+      </div>
+      <div class="mach-side">
+        <div class="mach-ctl">
+          <label>Labels <button type="button" class="sw" id="mach-labels" aria-pressed="true" aria-label="Show labels"></button></label>
+          <button type="button" class="btn run" id="mach-run">Run an agenda through <span class="arr">→</span></button>
+        </div>
+        <div class="mach-card" aria-live="polite">
+          <div class="in" id="mach-in">
+            <div class="k"><span class="label" style="color:var(--clay)" id="mach-step"></span><span class="chip" id="mach-tag"></span></div>
+            <h3 id="mach-h"></h3>
+            <p class="does" id="mach-does"></p>
+            <p class="trust"><b>Why you can trust it</b><span id="mach-trust"></span></p>
+          </div>
+          <div class="nav"><button type="button" id="mach-prev">← Up a layer</button><button type="button" id="mach-next">Down a layer →</button></div>
+        </div>
+        <p class="mach-note">Not legal or appraisal advice. Addresses appear as the county printed them.</p>
+      </div>
+    </div>
+  </section>
+
     <section class="wrap sec" aria-labelledby="h-parcel">
     <div class="head reveal">
-      <div><p class="kicker label" data-n="03 / 05">On the map</p><h2 id="h-parcel">The parcel <em>behind the filing.</em></h2></div>
+      <div><p class="kicker label" data-n="04 / 06">On the map</p><h2 id="h-parcel">The parcel <em>behind the filing.</em></h2></div>
       <p>Two real rezonings from this year's Planning Commission agendas, shown on the county's public parcel map. Each one links to the agenda where it was filed.</p>
     </div>
     <div class="parcels">
@@ -699,7 +787,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
 
 <section class="wrap sec" aria-labelledby="h-docket" id="docket">
     <div class="head reveal">
-      <div><p class="kicker label" data-n="04 / 05">Try it</p><h2 id="h-docket">Search what's been <em>on the agenda.</em></h2></div>
+      <div><p class="kicker label" data-n="05 / 06">Try it</p><h2 id="h-docket">Search what's been <em>on the agenda.</em></h2></div>
       <p>Real docket numbers from recent county agendas. Filter by type, search a road or a town, and tap a line for the details.</p>
     </div>
     <div class="docket-grid">
@@ -721,7 +809,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
 
   <section class="wrap sec" aria-labelledby="h-price">
     <div class="head reveal">
-      <div><p class="kicker label" data-n="05 / 05">Pricing</p><h2 id="h-price">One plan, with a founding rate <em>for the first 20 who join.</em></h2></div>
+      <div><p class="kicker label" data-n="06 / 06">Pricing</p><h2 id="h-price">One plan, with a founding rate <em>for the first 20 who join.</em></h2></div>
       <p>Reserving is free and charges nothing. We'll email you before the first issue, and you decide then. One deal you hear about early covers years of it.</p>
     </div>
     <div class="samples">
@@ -834,6 +922,20 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
       "CB-2026-077": {type:"ZONING_VARIANCE_REQUEST",  date:"2026-10-14", taxMap:"0534020100301", address:"1105 Old Spartanburg Rd., Greer, SC 29650",     img:"P2", pin:{x:50, y:50}},
       "CB-2026-064": {type:"ZONING_VARIANCE_REQUEST",  date:"2026-09-09", taxMap:"0224000101201", address:"753-759 S. Washington Ave., Greenville, SC",    img:"P3", pin:{x:50, y:50}},
       "CB-2026-065": {type:"ZONING_SPECIAL_EXCEPTION", date:"2026-09-09", taxMap:"P015130110600", address:"1050 Edwards Rd., Greenville, SC 29615",       img:"P4", pin:{x:50, y:50}}
+    },
+    // "How it works" machine. Layers run top (the county PDF) to bottom (the Brief).
+    // Every sentence here must stay true of the live pipeline; change the copy when the pipeline changes.
+    machine: {
+      startTurnDeg: -38, maxGapPx: 26, fanPerLayer: 0.42, dragDegPerPx: 0.35, runStepMs: 700, autoOpenTo: 70, autoOpenMs: 1400, autoRunDelayMs: 500, autoStartRatio: 0.45,
+      parts: [
+        {name:"The county's own PDF", tag:"SOURCE", does:"It starts with the agenda PDFs Greenville County publishes for the Planning Commission, the Board of Zoning Appeals and the Subdivision Advisory Committee.", trust:"Nothing comes from a third-party feed or a listing site. Every line in the Brief links back to the exact county PDF it came from."},
+        {name:"Nightly check", tag:"EVERY NIGHT", does:"Every night, the system visits each board's agenda page and looks for anything new.", trust:"A ledger records every PDF already read, so a new agenda gets picked up and an old one isn't counted twice. Handling for revised agendas is coming soon."},
+        {name:"The reader", tag:"READ", does:"An AI model reads each agenda and pulls out the docket number, the address, the type of request, the tax map number and the meeting date.", trust:"It copies what's printed. If an agenda doesn't print an address, the field stays blank. Nothing is guessed or filled in."},
+        {name:"Guardrails", tag:"RULES", does:"Every record has to pass rules before it's saved.", trust:"A record with no docket number and no tax map number is refused. Practice data used for testing is locked out of the live system."},
+        {name:"Hand checks", tag:"PEOPLE", does:"People compare saved records against the original county PDFs, line by line.", trust:"Before launch, a sample of 21 records was checked by hand against the PDFs. All 21 matched."},
+        {name:"Health monitor", tag:"ALERTS", does:"Each nightly run reports how many agendas it found, read and saved.", trust:"If a run fails, or finds agendas but saves nothing, it's flagged in the run report. Same-morning phone alerts are being hardened now."},
+        {name:"The Brief", tag:"YOU", does:"What comes out is a clean list: docket number, address as printed, type of request, meeting date and a link to the PDF. Starting soon, in your inbox.", trust:"Every line carries its source link, so you can check any item against the county's own document in one tap."}
+      ]
     },
     eventTypeLabels: {ZONING_REZONING_REQUEST:"Rezoning", ZONING_VARIANCE_REQUEST:"Variance", ZONING_SPECIAL_EXCEPTION:"Special exception", ZONING_SPECIAL_EXCEPTION_REQUEST:"Special exception"},
     // Parcel-map slides stay off until county GIS images are cleared for the public page (Muse research 10/16).
@@ -1022,6 +1124,98 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
     ["mouseenter","focusin"].forEach(ev => entry.addEventListener(ev, () => heroPaused = true));
     ["mouseleave","focusout"].forEach(ev => entry.addEventListener(ev, () => heroPaused = false));
   }
+
+  // ---- trust machine: pipeline layers, top (county PDF) to bottom (the Brief) ----
+  (() => {
+    const M = CONFIG.machine, rig = $("rig"), stage = $("mach-stage"), mach = $("mach");
+    if (!M || !rig) return;
+    const P = M.parts, n = P.length;
+    let cur = 0, rz = M.startTurnDeg, running = false;
+    const slabs = P.map((p, i) => {
+      const s = el("div","slab"); s.dataset.i = i; s.style.setProperty("--k", i);
+      const top = el("i","tp"); top.append(el("s",null,String(i+1).padStart(2,"0")), el("b",null,p.name), el("em",null,p.tag));
+      s.append(top, el("i","sd sn"), el("i","sd ss"), el("i","sd se"), el("i","sd sw"));
+      s.setAttribute("role","button"); s.tabIndex = 0; s.setAttribute("aria-label", `Layer ${i+1}: ${p.name}`);
+      s.addEventListener("click", e => { e.stopPropagation(); show(i); });
+      s.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(i); } });
+      rig.append(s); return s;
+    });
+    const pkt = el("div","pkt"); pkt.append(el("i",null,"PDF")); rig.append(pkt);
+    const pull = { value: 0 };  // opened automatically when the section scrolls into view
+    const css = k => parseFloat(getComputedStyle(rig).getPropertyValue(k)) || 0;
+    const gap = () => css("--t") + 2 + (M.maxGapPx * pull.value / 100);
+    const step = () => css("--s") * M.fanPerLayer * (0.25 + 0.75 * pull.value / 100);  // each layer slides out toward you
+    function layout() {
+      const g = gap(), d = step();
+      slabs.forEach((s, i) => { s.style.setProperty("--z", ((n - 1 - i) * g) + "px"); s.style.setProperty("--y", (i * d) + "px"); s.style.setProperty("--x", (-i * d * 0.35) + "px"); });
+    }
+    // keep the whole stack centred in the stage, whatever the turn and spread
+    let fitT = null;
+    function fit() {
+      clearTimeout(fitT);
+      fitT = setTimeout(() => {
+        const st = stage.getBoundingClientRect(); let t = 1e9, l = 1e9, b = -1e9, r = -1e9;
+        slabs.forEach(s => { const q = s.querySelector(".tp").getBoundingClientRect(); t = Math.min(t,q.top); l = Math.min(l,q.left); b = Math.max(b,q.bottom); r = Math.max(r,q.right); });
+        const dy = (st.top + st.height / 2) - (t + b) / 2, dx = (st.left + st.width / 2) - (l + r) / 2;
+        rig.style.setProperty("--lift", (css("--lift") + dy) + "px"); rig.style.setProperty("--shx", (css("--shx") + dx) + "px");
+      }, reduce ? 0 : 750);
+    }
+    function show(i) {
+      cur = (i + n) % n; const p = P[cur], box = $("mach-in");
+      slabs.forEach((s, j) => s.classList.toggle("on", j === cur));
+      box.classList.add("swap");
+      setTimeout(() => {
+        $("mach-step").textContent = `Layer ${cur+1} of ${n}`; $("mach-tag").textContent = p.tag;
+        $("mach-h").textContent = p.name; $("mach-does").textContent = p.does; $("mach-trust").textContent = p.trust;
+        box.classList.remove("swap");
+      }, reduce ? 0 : 200);
+    }
+    addEventListener("resize", fit);
+    $("mach-labels").addEventListener("click", e => { const on = e.currentTarget.getAttribute("aria-pressed") !== "true"; e.currentTarget.setAttribute("aria-pressed", on); mach.classList.toggle("nolabels", !on); });
+    $("mach-prev").addEventListener("click", () => show(cur - 1));
+    $("mach-next").addEventListener("click", () => show(cur + 1));
+    // drag to turn
+    let sx = null, srz = 0;
+    const setTurn = v => { rz = v; rig.style.setProperty("--rz", rz + "deg"); };
+    stage.addEventListener("pointerdown", e => { if (e.target.closest(".slab") && e.pointerType !== "mouse") return; sx = e.clientX; srz = rz; stage.classList.add("drag"); stage.setPointerCapture(e.pointerId); });
+    stage.addEventListener("pointermove", e => { if (sx === null) return; setTurn(srz + (e.clientX - sx) * M.dragDegPerPx); });
+    const end = () => { if (sx !== null) fit(); sx = null; stage.classList.remove("drag"); };
+    stage.addEventListener("pointerup", end); stage.addEventListener("pointercancel", end);
+    // run an agenda through: the PDF drops layer by layer
+    async function runAgenda() {
+      if (running) return; running = true;
+      const g = gap(), wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+      pkt.classList.add("go");
+      for (let i = 0; i < n; i++) {
+        pkt.style.setProperty("--pz", ((n - 1 - i) * g + 40) + "px"); pkt.style.setProperty("--py", (i * step()) + "px"); pkt.style.setProperty("--px", (-i * step() * 0.35) + "px");
+        pkt.style.transition = reduce ? "none" : `transform ${M.runStepMs}ms var(--ease), opacity .3s`;
+        await wait(M.runStepMs * 0.6);
+        show(i); slabs[i].classList.remove("hit"); void slabs[i].offsetWidth; slabs[i].classList.add("hit");
+        await wait(M.runStepMs);
+      }
+      pkt.classList.remove("go"); running = false;
+    }
+    $("mach-run").addEventListener("click", runAgenda);
+    // scroll into view: pull the layers apart, then run an agenda through once
+    function autoOpen() {
+      const to = M.autoOpenTo, ms = reduce ? 0 : M.autoOpenMs, t0 = performance.now();
+      return new Promise(res => {
+        const tick = now => {
+          const k = ms ? Math.min(1, (now - t0) / ms) : 1, e = 1 - Math.pow(1 - k, 3);
+          pull.value = to * e; layout();
+          if (k < 1) requestAnimationFrame(tick); else { fit(); res(); }
+        };
+        requestAnimationFrame(tick);
+      });
+    }
+    let started = false;
+    const go = async () => { if (started) return; started = true; await autoOpen(); await new Promise(r => setTimeout(r, reduce ? 0 : M.autoRunDelayMs)); runAgenda(); };
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { io.disconnect(); go(); } }, { threshold: M.autoStartRatio });
+      io.observe(stage);
+    } else go();
+    setTurn(rz); layout(); show(0); fit();
+  })();
 
   // ---- jump to the form ----
   const toForm = e => { if (e) e.preventDefault(); scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}); setTimeout(() => email.focus({preventScroll:true}), reduce ? 0 : 450); };
