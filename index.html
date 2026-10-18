@@ -903,7 +903,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
     foundingWindowDays: 90,   // founding rate ends N days after the first paid digest (00_DECISIONS_v9 A4)
     foundingReserved: 0,      // spots already claimed; used when the live count below is empty or unreachable
     // Live count: a URL returning JSON {"reserved": N} (count only, no names/emails). Empty = use foundingReserved.
-    foundingCountUrl: "",
+    foundingCountUrl: "https://script.google.com/macros/s/AKfycbwwjWVOzv7TlXx0Ivul9NQhGEUZjD5EPWjPA_cbHlW35aWQD6Kh8wUrdMPkGJM2qKBf/exec", // Muse SEAT-COUNTER-1, deployed 10/18 2:40am
     mouseFirstPeekDelay: 1600, // ms after load before the drummer mouse first peeks over its ledge
     mousePeekMs: [3000, 5000], // it stays up a random time in this range (ms), then ducks back down
     mousePullPx: 24,           // how far a pull-down at the very top of the page triggers a peek
