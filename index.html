@@ -458,6 +458,8 @@ dialog.issue[open]{display:flex;flex-direction:column}
 .sample li::before{content:"";flex:none;width:16px;height:1px;background:currentColor;opacity:.55;margin-top:.85em}
 .seats{display:grid;grid-template-columns:repeat(10,14px);gap:7px;margin-top:22px}
 .seats i{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(251,246,236,.78)}
+.seats i.taken{background:rgba(251,246,236,.92);border-color:rgba(251,246,236,.92)}
+.seats-left{margin-top:10px;font-size:.92rem;font-weight:600;letter-spacing:.01em}
 .was{font:400 1.25rem/1 var(--f-display);text-decoration:line-through;opacity:.65}
 .push{margin-top:auto;padding-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .btn.light{background:var(--on-clay);color:var(--clay)}
@@ -826,11 +828,12 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
       </article>
       <article class="sample clay reveal" style="--d:120ms">
         <span class="label">Founding member</span>
-        <div class="amt"><b>$149</b><span>per month, locked for as long as you stay</span></div>
-        <p style="margin:6px 0 0"><span class="was">$200</span> <span style="font-size:.92rem;opacity:.9">for the first 20 who reserve</span></p>
-        <div class="seats" id="seats" aria-label="20 founding spots"></div>
+        <div class="amt"><b>$149</b><span>per month. Locked in as long as you stay.</span></div>
+        <p style="margin:6px 0 0"><span class="was">$200</span> <span id="founding-terms" style="font-size:.92rem;opacity:.9">Only 20 spots. Closes 90 days after launch.</span></p>
+        <div class="seats" id="seats" aria-hidden="true"></div>
+        <p class="seats-left" id="seats-left">20 of 20 spots left</p>
         <div class="push">
-          <a class="btn light js-top" href="#top">Reserve a founding spot <span class="arr">→</span></a>
+          <a class="btn light js-top" href="#top">Claim your spot <span class="arr">→</span></a>
           <span style="font-size:.9rem;opacity:.9">Everything in the Brief</span>
         </div>
       </article>
@@ -897,6 +900,10 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
     // Preview copies run inside a frame that can't reach Google. Set to true to force sending anyway.
     forceLive: false,
     foundingSpots: 20,
+    foundingWindowDays: 90,   // founding rate ends N days after the first paid digest (00_DECISIONS_v9 A4)
+    foundingReserved: 0,      // spots already claimed; used when the live count below is empty or unreachable
+    // Live count: a URL returning JSON {"reserved": N} (count only, no names/emails). Empty = use foundingReserved.
+    foundingCountUrl: "",
     mouseFirstPeekDelay: 1600, // ms after load before the drummer mouse first peeks over its ledge
     mousePeekMs: [3000, 5000], // it stays up a random time in this range (ms), then ducks back down
     mousePullPx: 24,           // how far a pull-down at the very top of the page triggers a peek
@@ -987,9 +994,23 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
   WIRE.forEach(id => { const d = byId[id]; const li = el("li"); li.append(el("span",null,d.loc), el("span",null,d.rel)); wl.appendChild(li); });
   const clone = wl.cloneNode(true); clone.removeAttribute("id"); clone.setAttribute("aria-hidden","true"); $("wire").appendChild(clone);
 
-  // ---- seats ----
+  // ---- founding terms ----
+  { const ft = $("founding-terms"); if (ft) ft.textContent = `Only ${CONFIG.foundingSpots} spots. Closes ${CONFIG.foundingWindowDays} days after launch.`; }
+  // ---- seats: filled = claimed, open = still available ----
   const seats = $("seats");
   for (let i = 0; i < CONFIG.foundingSpots; i++) { const s = el("i"); s.style.setProperty("--k", i); seats.appendChild(s); }
+  function showSeats(reserved) {
+    const total = CONFIG.foundingSpots;
+    const taken = Math.max(0, Math.min(total, Math.floor(Number(reserved) || 0)));
+    [...seats.children].forEach((s, i) => s.classList.toggle("taken", i < taken));
+    const left = total - taken, sl = $("seats-left");
+    if (sl) sl.textContent = left > 0 ? `${left} of ${total} spots left` : "All founding spots are claimed";
+  }
+  showSeats(CONFIG.foundingReserved);
+  if (CONFIG.foundingCountUrl) {
+    fetch(CONFIG.foundingCountUrl, {cache: "no-store"}).then(r => r.ok ? r.json() : null)
+      .then(j => { if (j && Number.isFinite(Number(j.reserved))) showSeats(j.reserved); }).catch(() => {});
+  }
 
   // ---- hero entry rotation ----
   const markers = [...document.querySelectorAll(".marker")], dots = [...$("e-dots").children], entryIn = $("entry-in");
