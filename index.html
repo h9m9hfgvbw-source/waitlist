@@ -688,7 +688,6 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
       </div>
       <div class="entry" id="entry">
         <div class="entry-in" id="entry-in">
-          <img class="e-img" id="e-img" alt="">
           <div class="entry-top"><span class="label" style="color:var(--clay)" id="e-kind">Rezoning · Planning Commission</span><span class="chip" id="e-chip">CZ-2026-049</span></div>
           <h3 id="e-loc">823 &amp; 825 Woodside Ave., Greenville</h3>
           <p id="e-meta"><span class="mono">Sep 23, 2026</span> · Tax map <span class="mono">0126001000101</span></p>
@@ -945,7 +944,6 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
       ]
     },
     eventTypeLabels: {ZONING_REZONING_REQUEST:"Rezoning", ZONING_VARIANCE_REQUEST:"Variance", ZONING_SPECIAL_EXCEPTION:"Special exception", ZONING_SPECIAL_EXCEPTION_REQUEST:"Special exception"},
-    // Parcel-map slides stay off until county GIS images are cleared for the public page (Muse research 10/16).
     sources: {
       pc_2026_09_23: "https://www.greenvillecounty.org/apps/DirectoryListingGC/Details.aspx?d=PlanningAgendas&f=D%3a%5cWebsites%5cGreenville_County%5cSharedFolders%5cPlanningAgendas%5cAgenda%5c2026+Agendas%5c09.+September+23%2c+2026+Agenda.pdf",
       pc_2026_08_26: "https://www.greenvillecounty.org/apps/DirectoryListingGC/Details.aspx?d=PlanningAgendas&f=D%3a%5cWebsites%5cGreenville_County%5cSharedFolders%5cPlanningAgendas%5cAgenda%5c2026+Agendas%5c08.+August+26+2026+Agenda.pdf",
@@ -977,7 +975,6 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
     {id:"CB-2026-071", loc:"907 Hwy. 14, Simpsonville", rel:"Variance", date:"Sep 9, 2026", src:"bza_2026_09_09"}
   ];
   const HERO = ["CZ-2026-049", "CZ-2026-048"];
-  const HERO_IMG = {"CZ-2026-049": document.getElementById("img-049").src, "CZ-2026-048": document.getElementById("img-048")?.src};
   const WIRE = ["CZ-2026-049","PP-2026-148","CB-2026-067","CZ-2026-048","PP-2026-153","CB-2026-069","CZ-2026-046","PP-2026-150","CB-2026-070","CZ-2026-042","PP-2026-129","CZ-2026-041"];
 
   const $ = id => document.getElementById(id);
@@ -1019,7 +1016,6 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
     const d = byId[HERO[i]], t = typeOf(d);
     $("e-kind").textContent = `${d.rel} · ${t.board}`;
     $("e-chip").textContent = d.id;
-    const ei = $("e-img"); if (HERO_IMG[d.id]) { ei.src = HERO_IMG[d.id]; ei.alt = `County parcel map with ${d.loc} outlined in red`; ei.hidden = false; } else { ei.hidden = true; }
     $("e-loc").textContent = d.loc;
     const meta = $("e-meta"); meta.textContent = "";
     if (d.date) meta.append(el("span","mono",d.date));
@@ -1126,8 +1122,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 
   let resume = null;
   markers.forEach((m, k) => {
     const d = byId[HERO[k]], t = typeOf(d), card = m.querySelector(".peek-card");
-    if (HERO_IMG[d.id]) { const im = el("img","pk-img"); im.src = HERO_IMG[d.id]; im.alt = `County parcel map with ${d.loc} outlined in red`; card.append(im); }
-    card.append(el("b",null,d.loc), el("span",null,[`${d.rel} · ${t.board}`, d.date, d.taxMap ? "Tax map " + d.taxMap : null].filter(Boolean).join(" · ")), el("em",null,"On the county agenda"), el("small",null,"Approximate boundary, not a survey · Greenville County GIS"));
+    card.append(el("b",null,d.loc), el("span",null,[`${d.rel} · ${t.board}`, d.date, d.taxMap ? "Tax map " + d.taxMap : null].filter(Boolean).join(" · ")), el("em",null,"On the county agenda"));
     m.setAttribute("aria-label", `${d.loc}, ${d.rel.toLowerCase()} before the ${t.board}${d.date ? ", " + d.date : ""}`);
     m.addEventListener("click", () => {
       const was = m.classList.contains("peek");
