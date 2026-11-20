@@ -462,7 +462,28 @@ dialog.issue[open]{display:flex;flex-direction:column}
 .seats i{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(251,246,236,.78)}
 .seats i.taken{background:rgba(251,246,236,.92);border-color:rgba(251,246,236,.92)}
 .seats-left{margin-top:10px;font-size:.92rem;font-weight:600;letter-spacing:.01em}
-.was{font:400 1.25rem/1 var(--f-display);text-decoration:line-through;opacity:.65}
+.tier-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;padding:6px 11px;border-radius:999px;border:1px solid rgba(251,246,236,.6);font:500 .74rem/1 var(--f-mono);letter-spacing:.02em;white-space:nowrap}
+.tier-tag{margin:12px 0 0;font:italic 400 clamp(1.15rem,1.6vw,1.3rem)/1.3 var(--f-display)}
+.next-price{margin:8px 0 0;font-size:.92rem;opacity:.9}
+.push small{font-size:.9rem;opacity:.9}
+/* side-by-side table: scrolls sideways on phones instead of squashing */
+.compare{margin-top:clamp(40px,6vw,64px)}
+.compare h3{margin:0;font-weight:500;font-size:clamp(1.45rem,2.4vw,1.9rem);line-height:1.15}
+.cmp-scroll{margin-top:18px;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border:1px solid var(--line);border-radius:20px;background:var(--card);box-shadow:0 14px 34px rgba(42,34,28,.08)}
+.cmp{width:100%;min-width:660px;border-collapse:collapse;font-size:.96rem}
+.cmp th,.cmp td{padding:14px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.cmp thead th{font:600 .72rem/1.3 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);vertical-align:bottom}
+.cmp thead th b{display:block;margin-top:6px;font:400 1.6rem/1 var(--f-display);letter-spacing:-.02em;text-transform:none;color:var(--ink)}
+.cmp tbody th{font-weight:500;width:40%}
+.cmp .fm{background:rgba(149,78,42,.06)}
+.cmp thead .fm b{color:var(--clay)}
+.cmp .no{color:var(--ink-2)}
+.cmp tbody tr:last-child > *{border-bottom:0}
+.soon{display:inline-block;margin-left:6px;padding:3px 7px;border:1px solid var(--clay);border-radius:999px;font:500 .66rem/1.2 var(--f-mono);color:var(--clay);white-space:nowrap;vertical-align:1px}
+.cmp-hint{display:none;margin:10px 0 0;font:600 .7rem/1.2 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--clay)}
+@media (max-width:700px){.cmp-hint{display:block}}
+.cmp-fine{margin:14px 0 0;font-size:.88rem;color:var(--ink-2);max-width:62em}
 .push{margin-top:auto;padding-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .btn.light{background:var(--on-clay);color:var(--clay)}
 .btn.light:hover{background:#fff}
@@ -648,12 +669,16 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
         <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@yourfirm.com" required>
         <button class="btn" type="submit" id="reserve" disabled>Reserve my spot <span class="arr">→</span></button>
       </form>
-      <div class="fine rise d4"><span>Free to reserve</span><span>No card</span><span>Founding rate $149/mo</span></div>
+      <div class="fine rise d4"><span>Free to reserve</span><span>No card</span><span>Founding rate $149/mo, or $49/mo Docket Alerts</span></div>
       <p class="peek rise d4"><button type="button" class="textlink js-issue">See a sample issue</button></p>
       <p class="msg" id="msg" role="status" aria-live="polite"></p>
       <div class="more" id="more" hidden>
         <h3>Almost done.</h3>
-        <p class="note">Four quick questions, all optional. The last one helps us set the price.</p>
+        <p class="note">A few quick questions, all optional. The last one helps us set the price.</p>
+        <fieldset class="fld"><legend>Which plan?</legend><div class="opts" id="f-tier">
+          <label><input type="radio" name="tier" id="tier-alerts" value="Docket Alerts $49"><span>Docket Alerts $49/mo</span></label>
+          <label><input type="radio" name="tier" id="tier-founding" value="Founding Member $149" checked><span>Founding $149/mo</span></label>
+        </div></fieldset>
         <div class="fld"><label for="f-name">Name</label><input id="f-name" type="text" autocomplete="name"></div>
         <fieldset class="fld"><legend>What do you do?</legend><div class="opts" id="f-role">
           <label><input type="radio" name="role" id="role-1" value="Broker"><span>Broker</span></label>
@@ -675,8 +700,8 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
       </div>
       <div class="more done" id="done" hidden tabindex="-1">
         <p class="label" style="color:var(--clay);margin:0">Reservation received</p>
-        <h3 style="margin-top:8px">You're on the founding list.</h3>
-        <p class="note" style="margin-bottom:0">We'll email <b id="done-email"></b> before the first issue goes out. Your $149 founding rate is held. Nothing is charged until you say yes.</p>
+        <h3 style="margin-top:8px" id="done-h">You're on the founding list.</h3>
+        <p class="note" style="margin-bottom:0">We'll email <b id="done-email"></b> before the first issue goes out. <span id="done-rate">Your $149 founding rate is held.</span> Nothing is charged until you say yes.</p>
         <p class="preview-note" id="preview-note" hidden>This is a preview copy, so nothing was sent. On the live site, this step saves your reservation.</p>
       </div>
     </div>
@@ -808,34 +833,71 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
     </div>
   </section>
 
-  <section class="wrap sec" aria-labelledby="h-price">
+  <section class="wrap sec" aria-labelledby="h-price" id="pricing">
     <div class="head reveal">
-      <div><p class="kicker label" data-n="06 / 06">Pricing</p><h2 id="h-price">One plan, with a founding rate <em>for the first 20 who join.</em></h2></div>
+      <div><p class="kicker label" data-n="06 / 06">Pricing</p><h2 id="h-price">Pick how deep <em>you want to go.</em></h2></div>
       <p>Reserving is free and charges nothing. We'll email you before the first issue, and you decide then. One deal you hear about early covers years of it.</p>
     </div>
     <div class="samples">
-      <article class="sample stone reveal">
-        <span class="label">The Parsed Agendas Brief</span>
-        <div class="amt"><b>$200</b><span>per month</span></div>
+      <article class="sample stone reveal" aria-labelledby="t-alerts">
+        <span class="label" id="t-alerts">Docket Alerts</span>
+        <div class="amt"><b>$49</b><span>per month</span></div>
+        <p class="tier-tag">What's on the agenda.</p>
         <ul>
-          <li>Planning Commission, BZA and SAC filings, every week</li>
-          <li>Docket number and address as the county prints them</li>
-          <li>The county's agenda PDF linked with each list</li>
-          <li>Carried-over cases show up again when they come back</li>
-          <li>No ads</li>
+          <li>Every case on that week's county BZA, SAC and Planning Commission agendas</li>
+          <li>Case number, board and meeting date</li>
+          <li>A link to the county's own copy of every agenda</li>
+          <li>Corrected list when the county revises an agenda</li>
+          <li>Greenville County</li>
         </ul>
-      </article>
-      <article class="sample clay reveal" style="--d:120ms">
-        <span class="label">Founding member</span>
-        <div class="amt"><b>$149</b><span>per month. Locked in as long as you stay.</span></div>
-        <p style="margin:6px 0 0"><span class="was">$200</span> <span id="founding-terms" style="font-size:.92rem;opacity:.9">Only 20 spots. Closes 90 days after launch.</span></p>
-        <div class="seats" id="seats" aria-hidden="true"></div>
-        <p class="seats-left" id="seats-left">20 of 20 spots left</p>
         <div class="push">
-          <a class="btn light js-top" href="#top">Claim your spot <span class="arr">→</span></a>
-          <span style="font-size:.9rem;opacity:.9">Everything in the Brief</span>
+          <a class="btn js-top" data-tier="alerts" href="#top">Reserve Docket Alerts <span class="arr">→</span></a>
+          <small>Free to reserve. No card.</small>
         </div>
       </article>
+      <article class="sample clay reveal" style="--d:120ms" aria-labelledby="t-founding">
+        <div class="tier-top"><span class="label" id="t-founding">Founding Member</span><span class="badge">20 spots only</span></div>
+        <div class="amt"><b>$149</b><span>per month, price locked</span></div>
+        <p class="next-price">$200/mo once the 20 founding spots fill.</p>
+        <p class="tier-tag">What it means, what changed, and everything we build next.</p>
+        <div class="seats" id="seats" aria-hidden="true"></div>
+        <p class="seats-left" id="seats-left">20 of 20 spots left</p>
+        <ul>
+          <li>Everything in Docket Alerts</li>
+          <li>The plain-English Monday brief: what is being requested, the zoning district and the street, where the county prints them</li>
+          <li>What changed when the county revises an agenda, e.g. "withdrawn after posting"</li>
+          <li>Every city and county we add, at no extra cost</li>
+          <li>New features included as they launch</li>
+          <li>Your founding price stays locked as long as you stay subscribed</li>
+        </ul>
+        <div class="push">
+          <a class="btn light js-top" data-tier="founding" href="#top">Claim a founding spot <span class="arr">→</span></a>
+          <small>Free to reserve. No card.</small>
+        </div>
+      </article>
+    </div>
+    <div class="compare reveal">
+      <h3 id="h-compare">Side by side</h3>
+      <p class="cmp-hint" aria-hidden="true">Swipe to see both plans →</p>
+      <div class="cmp-scroll" role="region" aria-labelledby="h-compare" tabindex="0">
+        <table class="cmp">
+          <thead>
+            <tr><th scope="col">What you get</th><th scope="col">Docket Alerts<b>$49</b></th><th scope="col" class="fm">Founding<b>$149</b></th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Every case on that week's agendas</th><td>Yes</td><td class="fm">Yes</td></tr>
+            <tr><th scope="row">Link to the county's own copy</th><td>Yes</td><td class="fm">Yes</td></tr>
+            <tr><th scope="row">Plain-English Monday brief</th><td class="no">No</td><td class="fm">Yes</td></tr>
+            <tr><th scope="row">What changed when an agenda is revised</th><td>Corrected list</td><td class="fm">Corrected list with notes</td></tr>
+            <tr><th scope="row">Follow a case: alerts when it moves <span class="soon">Coming soon</span></th><td class="no">Not included</td><td class="fm">Included at launch</td></tr>
+            <tr><th scope="row">Appeal-deadline reminders <span class="soon">Coming soon</span></th><td class="no">Not included</td><td class="fm">Included at launch</td></tr>
+            <tr><th scope="row">County Council and committee final votes <span class="soon">Coming soon</span></th><td class="no">Not included</td><td class="fm">Included at launch</td></tr>
+            <tr><th scope="row">Coverage</th><td>Greenville County</td><td class="fm">Greenville County, plus every city and county we add</td></tr>
+            <tr><th scope="row">Price</th><td>$49 a month</td><td class="fm">$149 a month, locked while you stay subscribed</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="cmp-fine">Founding spots are limited to 20. If you cancel, the founding price and spot are released. "Coming soon" features are not live yet; founding members get each one when it launches. Cancel any time.</p>
     </div>
   </section>
 
@@ -854,7 +916,7 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
   <section class="wrap faq" aria-label="Questions">
     <div><h3>What's covered?</h3><p>Greenville County's Planning Commission, Board of Zoning Appeals and Subdivision Advisory Committee. More boards are on our list. Founding members get each one as it's added, at the same rate.</p></div>
     <div><h3>When does the first issue go out?</h3><p>As soon as our listings pass accuracy checks against the county's own agendas. We'll email you first, and you won't be charged until you choose to start.</p></div>
-    <div><h3>What does reserving commit me to?</h3><p>Nothing. It holds your place and the founding rate. You can say no when we email you.</p></div>
+    <div><h3>What does reserving commit me to?</h3><p>Nothing. It holds your place and the rate you picked. You can say no when we email you.</p></div>
     <div><h3>Is this from the county?</h3><p>No. Parsed Agendas is independent and not affiliated with Greenville County. Everything comes from the county's public agendas, as printed.</p></div>
     <div><h3>Is it legal or appraisal advice?</h3><p>No. It's a record of public filings that saves you the reading. Check anything that matters against the county's documents.</p></div>
     <div><h3>Who's behind it?</h3><p>Timothy Sevilla, founder, and Matt Buchanan, co-founder, here in the Upstate. Parsed Agendas reads the county's agendas so you don't have to.</p></div>
@@ -898,13 +960,15 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
       fields: {name:"entry.93815623", email:"entry.2124763340", role:"entry.1105264226", keep:"entry.147819988", pay:"entry.2016127337"}
     },
     // Terms agreement record. Fill in both Google Form entry IDs (e.g. "entry.123") to start sending them; empty = nothing extra is sent.
-    termsVersion: "2026-10-31",
+    termsVersion: "2026-11-20",
     termsEntryVersion: "entry.702277660",    // form question "Terms version" (required)
     termsEntryAgreedAt: "entry.1109136372",  // form question "Agreed at" (required)
+    // Plan picked in the reserve step. The Form has no "Tier" question yet, so this stays empty and the pick is NOT sent.
+    // Add a "Tier" question to the Form first, then put its entry ID here (follow-up PR). Never guess an ID.
+    tierEntry: "",
     // Preview copies run inside a frame that can't reach Google. Set to true to force sending anyway.
     forceLive: false,
     foundingSpots: 20,
-    foundingWindowDays: 90,   // founding rate ends N days after the first paid digest (00_DECISIONS_v9 A4)
     foundingReserved: 0,      // spots already claimed; used when the live count below is empty or unreachable
     // Live count: a URL returning JSON {"reserved": N} (count only, no names/emails). Empty = use foundingReserved.
     foundingCountUrl: "https://script.google.com/macros/s/AKfycbwwjWVOzv7TlXx0Ivul9NQhGEUZjD5EPWjPA_cbHlW35aWQD6Kh8wUrdMPkGJM2qKBf/exec", // Muse SEAT-COUNTER-1, deployed 10/18 2:40am
@@ -989,8 +1053,6 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
   WIRE.filter(id => hasPdf(byId[id])).forEach(id => { const d = byId[id]; const li = el("li"); li.append(el("span",null,d.loc), el("span",null,d.rel)); wl.appendChild(li); });
   const clone = wl.cloneNode(true); clone.removeAttribute("id"); clone.setAttribute("aria-hidden","true"); $("wire").appendChild(clone);
 
-  // ---- founding terms ----
-  { const ft = $("founding-terms"); if (ft) ft.textContent = `Only ${CONFIG.foundingSpots} spots. Closes ${CONFIG.foundingWindowDays} days after launch.`; }
   // ---- seats: filled = claimed, open = still available ----
   const seats = $("seats");
   for (let i = 0; i < CONFIG.foundingSpots; i++) { const s = el("i"); s.style.setProperty("--k", i); seats.appendChild(s); }
@@ -1232,7 +1294,11 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
   })();
 
   // ---- jump to the form ----
-  const toForm = e => { if (e) e.preventDefault(); scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}); setTimeout(() => email.focus({preventScroll:true}), reduce ? 0 : 450); };
+  const toForm = e => {
+    if (e) e.preventDefault();
+    const t = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.tier : "";
+    if (t) { const r = $("tier-" + t); if (r) r.checked = true; }
+    scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}); setTimeout(() => email.focus({preventScroll:true}), reduce ? 0 : 450); };
   document.querySelectorAll(".js-top, .mini .btn").forEach(b => b.addEventListener("click", toForm));
 
   // ---- static sample: a fixed handful of PDF-linked dockets (no search, no filters, no live data) ----
@@ -1343,6 +1409,7 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
   });
   function finish(v) {
     $("done-email").textContent = v;
+    if (pick("tier").startsWith("Docket Alerts")) { $("done-h").textContent = "You're on the list."; $("done-rate").textContent = "Your Docket Alerts spot at $49/mo is held."; }
     $("preview-note").hidden = !PREVIEW;
     more.hidden = true; done.hidden = false; done.focus({preventScroll:true});
     const b = $("ask").querySelector("button"); b.textContent = "Reserved ✓"; b.disabled = true;
@@ -1360,6 +1427,7 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
     if (pick("role")) body.set(F.role, pick("role"));
     if (val("f-keep")) body.set(F.keep, val("f-keep"));
     if (pick("pay")) body.set(F.pay, pick("pay"));
+    if (CONFIG.tierEntry && pick("tier")) body.set(CONFIG.tierEntry, pick("tier"));
     if (CONFIG.termsEntryVersion && CONFIG.termsEntryAgreedAt) { body.set(CONFIG.termsEntryVersion, CONFIG.termsVersion); body.set(CONFIG.termsEntryAgreedAt, agreedAt || isoLocal(new Date())); }
     sending = true; send.disabled = true; smsg.textContent = "";
     const label = send.innerHTML; send.innerHTML = '<span class="spin" aria-hidden="true"></span> Sending…';
