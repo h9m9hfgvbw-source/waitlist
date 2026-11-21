@@ -462,6 +462,9 @@ dialog.issue[open]{display:flex;flex-direction:column}
 .seats i{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(251,246,236,.78)}
 .seats i.taken{background:rgba(251,246,236,.92);border-color:rgba(251,246,236,.92)}
 .seats-left{margin-top:10px;font-size:.92rem;font-weight:600;letter-spacing:.01em}
+.founding-full{margin:0;font-size:.95rem;font-weight:600;line-height:1.45}
+.tier-full{margin:8px 0 0;font-size:.88rem;color:var(--ink-2)}
+.opts input:disabled + span{opacity:.45;cursor:not-allowed;text-decoration:line-through}
 .tier-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;padding:6px 11px;border-radius:999px;border:1px solid rgba(251,246,236,.6);font:500 .74rem/1 var(--f-mono);letter-spacing:.02em;white-space:nowrap}
 .tier-tag{margin:12px 0 0;font:italic 400 clamp(1.15rem,1.6vw,1.3rem)/1.3 var(--f-display)}
@@ -674,11 +677,11 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
       <p class="msg" id="msg" role="status" aria-live="polite"></p>
       <div class="more" id="more" hidden>
         <h3>Almost done.</h3>
-        <p class="note">A few quick questions, all optional. The last one helps us set the price.</p>
+        <p class="note">Pick a plan, then answer a few optional questions. The last one helps us set the price.</p>
         <fieldset class="fld"><legend>Which plan?</legend><div class="opts" id="f-tier">
-          <label><input type="radio" name="tier" id="tier-alerts" value="Docket Alerts $49"><span>Docket Alerts $49/mo</span></label>
-          <label><input type="radio" name="tier" id="tier-founding" value="Founding Member $149" checked><span>Founding $149/mo</span></label>
-        </div></fieldset>
+          <label><input type="radio" name="tier" id="tier-alerts" value=""><span>Docket Alerts $49/mo</span></label>
+          <label><input type="radio" name="tier" id="tier-founding" value=""><span>Founding $149/mo</span></label>
+        </div><p class="tier-full" id="tier-full" hidden></p></fieldset>
         <div class="fld"><label for="f-name">Name</label><input id="f-name" type="text" autocomplete="name"></div>
         <fieldset class="fld"><legend>What do you do?</legend><div class="opts" id="f-role">
           <label><input type="radio" name="role" id="role-1" value="Broker"><span>Broker</span></label>
@@ -695,7 +698,7 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
           <label><input type="radio" name="pay" id="pay-4" value="$150 to $249"><span>$150–249</span></label>
           <label><input type="radio" name="pay" id="pay-5" value="$250 or more"><span>$250+</span></label>
         </div></fieldset>
-        <div class="go"><button class="btn" id="send" type="button" disabled>Send my reservation <span class="arr">→</span></button><small>Only your email is required. Nothing is charged.</small></div>
+        <div class="go"><button class="btn" id="send" type="button" disabled>Send my reservation <span class="arr">→</span></button><small>Only your email and plan are required. Nothing is charged.</small></div>
         <p class="msg" id="sendmsg" role="status" aria-live="polite" style="margin-left:0"></p>
       </div>
       <div class="more done" id="done" hidden tabindex="-1">
@@ -871,8 +874,9 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
           <li>Your founding price stays locked as long as you stay subscribed</li>
         </ul>
         <div class="push">
-          <a class="btn light js-top" data-tier="founding" href="#top">Claim a founding spot <span class="arr">→</span></a>
-          <small>Free to reserve. No card.</small>
+          <a class="btn light js-top" data-tier="founding" href="#top" id="claim-founding">Claim a founding spot <span class="arr">→</span></a>
+          <small id="claim-founding-fine">Free to reserve. No card.</small>
+          <p class="founding-full" id="founding-full" role="status" hidden></p>
         </div>
       </article>
     </div>
@@ -963,14 +967,17 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
     termsVersion: "2026-11-20",
     termsEntryVersion: "entry.702277660",    // form question "Terms version" (required)
     termsEntryAgreedAt: "entry.1109136372",  // form question "Agreed at" (required)
-    // Plan picked in the reserve step. The Form has no "Tier" question yet, so this stays empty and the pick is NOT sent.
-    // Add a "Tier" question to the Form first, then put its entry ID here (follow-up PR). Never guess an ID.
-    tierEntry: "",
+    // Plan picked in the reserve step: Form question "Which plan?". Every reservation sends it; Send is blocked until a plan is picked.
+    tierEntry: "entry.1509073239",
+    // The Form's "Which plan?" options. These must match the Form's option text exactly, character for character.
+    plans: {founding: "Founding Member ($149/mo)", alerts: "Docket Alerts ($49/mo)"},
     // Preview copies run inside a frame that can't reach Google. Set to true to force sending anyway.
     forceLive: false,
     foundingSpots: 20,
-    foundingReserved: 0,      // spots already claimed; used when the live count below is empty or unreachable
-    // Live count: a URL returning JSON {"reserved": N} (count only, no names/emails). Empty = use foundingReserved.
+    foundingReserved: 0,      // Founding spots already claimed; used when the live count below is empty or unreachable
+    // Live count: a URL returning JSON {"founding": N} (count only, no names/emails). N = rows whose "Which plan?" is the
+    // Founding option, plus older rows with no plan. Docket Alerts rows never count. Empty = use foundingReserved.
+    // Until the script returns "founding", the page falls back to its older {"reserved": N} (all rows, so it can over-count).
     foundingCountUrl: "https://script.google.com/macros/s/AKfycbwwjWVOzv7TlXx0Ivul9NQhGEUZjD5EPWjPA_cbHlW35aWQD6Kh8wUrdMPkGJM2qKBf/exec", // Muse SEAT-COUNTER-1, deployed 10/18 2:40am
     mouseFirstPeekDelay: 1600, // ms after load before the drummer mouse first peeks over its ledge
     mousePeekMs: [3000, 5000], // it stays up a random time in this range (ms), then ducks back down
@@ -1056,17 +1063,36 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
   // ---- seats: filled = claimed, open = still available ----
   const seats = $("seats");
   for (let i = 0; i < CONFIG.foundingSpots; i++) { const s = el("i"); s.style.setProperty("--k", i); seats.appendChild(s); }
+  // The plan radios send the Form's exact option text, taken from CONFIG.plans.
+  $("tier-founding").value = CONFIG.plans.founding;
+  $("tier-alerts").value = CONFIG.plans.alerts;
+  let foundingFull = false;
   function showSeats(reserved) {
     const total = CONFIG.foundingSpots;
     const taken = Math.max(0, Math.min(total, Math.floor(Number(reserved) || 0)));
     [...seats.children].forEach((s, i) => s.classList.toggle("taken", i < taken));
     const left = total - taken, sl = $("seats-left");
-    if (sl) sl.textContent = left > 0 ? `${left} of ${total} spots left` : "All founding spots are claimed";
+    if (sl) sl.textContent = left > 0 ? `${left} of ${total} spots left` : `All ${total} founding spots are taken.`;
+    foundingFull = left <= 0;
+    // Sold out: the Founding card and the Founding radio stop taking reservations. Docket Alerts keeps working.
+    const claim = $("claim-founding"), fine = $("claim-founding-fine"), full = $("founding-full");
+    const fr = $("tier-founding"), tf = $("tier-full");
+    claim.hidden = fine.hidden = foundingFull;
+    full.hidden = !foundingFull;
+    full.textContent = foundingFull ? "We're no longer taking Founding Member reservations. Docket Alerts is still open at $49/mo." : "";
+    if (foundingFull && fr.checked) fr.checked = false;
+    fr.disabled = foundingFull;
+    tf.hidden = !foundingFull;
+    tf.textContent = foundingFull ? `All ${total} founding spots are taken. Pick Docket Alerts to reserve a spot.` : "";
   }
   showSeats(CONFIG.foundingReserved);
   if (CONFIG.foundingCountUrl) {
     fetch(CONFIG.foundingCountUrl, {cache: "no-store"}).then(r => r.ok ? r.json() : null)
-      .then(j => { if (j && Number.isFinite(Number(j.reserved))) showSeats(j.reserved); }).catch(() => {});
+      .then(j => {
+        if (!j) return;
+        const n = j.founding != null ? j.founding : j.reserved; // "founding" = Founding rows only; "reserved" = older script
+        if (n != null && n !== "" && Number.isFinite(Number(n))) showSeats(n);
+      }).catch(() => {});
   }
 
   // ---- hero entry rotation ----
@@ -1297,7 +1323,7 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
   const toForm = e => {
     if (e) e.preventDefault();
     const t = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.tier : "";
-    if (t) { const r = $("tier-" + t); if (r) r.checked = true; }
+    if (t) { const r = $("tier-" + t); if (r && !r.disabled) r.checked = true; }
     scrollTo({top:0, behavior: reduce ? "auto" : "smooth"}); setTimeout(() => email.focus({preventScroll:true}), reduce ? 0 : 450); };
   document.querySelectorAll(".js-top, .mini .btn").forEach(b => b.addEventListener("click", toForm));
 
@@ -1409,7 +1435,7 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
   });
   function finish(v) {
     $("done-email").textContent = v;
-    if (pick("tier").startsWith("Docket Alerts")) { $("done-h").textContent = "You're on the list."; $("done-rate").textContent = "Your Docket Alerts spot at $49/mo is held."; }
+    if (pick("tier") === CONFIG.plans.alerts) { $("done-h").textContent = "You're on the list."; $("done-rate").textContent = "Your Docket Alerts spot at $49/mo is held."; }
     $("preview-note").hidden = !PREVIEW;
     more.hidden = true; done.hidden = false; done.focus({preventScroll:true});
     const b = $("ask").querySelector("button"); b.textContent = "Reserved ✓"; b.disabled = true;
@@ -1420,6 +1446,11 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
     const v = email.value.trim();
     if (!okEmail(v)) { smsg.textContent = "Add a valid email at the top first."; email.focus(); return; }
     if (!agree.checked) { smsg.textContent = "Tick the box at the top to agree to the Terms of Use first."; agree.focus(); return; }
+    // Never guess a plan: the visitor must pick one, and a full Founding plan can't be picked.
+    const plan = pick("tier");
+    if (plan !== CONFIG.plans.founding && plan !== CONFIG.plans.alerts) { smsg.textContent = "Pick a plan first: Docket Alerts or Founding Member."; $("tier-alerts").focus(); return; }
+    if (plan === CONFIG.plans.founding && foundingFull) { smsg.textContent = "All founding spots are taken. Pick Docket Alerts to reserve a spot."; $("tier-alerts").focus(); return; }
+    smsg.textContent = "";
     if (PREVIEW) { finish(v); return; }
     const body = new URLSearchParams();
     body.set(F.email, v);
@@ -1427,7 +1458,7 @@ footer .legal a{color:var(--ink);text-decoration:underline;text-underline-offset
     if (pick("role")) body.set(F.role, pick("role"));
     if (val("f-keep")) body.set(F.keep, val("f-keep"));
     if (pick("pay")) body.set(F.pay, pick("pay"));
-    if (CONFIG.tierEntry && pick("tier")) body.set(CONFIG.tierEntry, pick("tier"));
+    body.set(CONFIG.tierEntry, plan);
     if (CONFIG.termsEntryVersion && CONFIG.termsEntryAgreedAt) { body.set(CONFIG.termsEntryVersion, CONFIG.termsVersion); body.set(CONFIG.termsEntryAgreedAt, agreedAt || isoLocal(new Date())); }
     sending = true; send.disabled = true; smsg.textContent = "";
     const label = send.innerHTML; send.innerHTML = '<span class="spin" aria-hidden="true"></span> Sending…';
